@@ -44,4 +44,4 @@ agenda for today(3/20/2025)
       - after that, make it so that the food items shown in the list can be picked so that the particular chosen food item with its amount is then added to the logger page.
 
       CURRENT STATUS OF addfood.tsx
-      - right now what is function correctly is the page's ability to write a food name and amount and then enter that food name and amount to the logger page. It is not capable of taking any nutrition data about that food and then displaying that nutrition data to anywhere. # nutrition-app-web-version
+      - right now what is function correctly is the page's ability to write a food name and amount and then enter that food name and amount to the logger page. It is not capable of taking any nutrition data about that food and then displaying that nutrition data to anywhere. 

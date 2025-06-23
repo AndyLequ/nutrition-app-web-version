@@ -16,7 +16,7 @@
         "foregroundImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
-      "package": "android.v1"
+      "package": "com.andyle.nutritionapp"
     },
     "web": {
       "bundler": "metro",

@@ -39,6 +39,7 @@ export default function Index() {
     setFat(totalFat);
   }, [safeFoods]);
 
+
   const DATA = [
     { name: "Protein", value: protein, color: "#FF6384" },
     { name: "Carbs", value: carbs, color: "#36A2EB" },

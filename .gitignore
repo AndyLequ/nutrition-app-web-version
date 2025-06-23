@@ -3,6 +3,9 @@
 # dependencies
 node_modules/
 
+#prebuild specific files
+/android
+
 # Expo
 .expo/
 dist/

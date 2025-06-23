@@ -1,27 +1,9 @@
-import React, { useEffect, useState } from "react";
-import {
-  StyleSheet,
-  View,
-  TextInput,
-  Text,
-  Button,
-  TouchableOpacity,
-  ActivityIndicator,
-  FlatList,
-  Alert,
-  Pressable,
-  Keyboard,
-} from "react-native";
-import { Picker } from "@react-native-picker/picker";
-import AsyncStorage from "@react-native-async-storage/async-storage";
+import React, { useEffect, useState, useRef } from "react";
+
 import { useFood } from "../FoodProvider";
 import debounce from "lodash.debounce";
 import axios from "axios";
 import { foodApi } from "../../services/api";
-import DropDownPicker from "react-native-dropdown-picker";
-
-import { UnifiedFoodItem } from "../../services/types"; // Adjust the import path as necessary
-import { FoodItem } from "../FoodProvider";
 
 interface UnifiedSearchResult {
   id: number;
@@ -66,10 +48,26 @@ export const SearchFood = () => {
     (UnifiedSearchResult & { servingSizeGrams?: number }) | null
   >(null);
 
+  const [showSuccess, setShowSuccess] = useState(false);
+  const [showResults, setShowResults] = useState(false);
+
   // these states are for later use, not important right now
   // const [submittedFoods, setSubmittedFoods] = useState([]);
   // const [showFoodList, setShowFoodList] = useState(false);
   const { addFood } = useFood();
+  const formRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (formRef.current && !formRef.current.contains(e.target as Node)) {
+        setShowResults(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
 
   const convertToServings = (
     amount: number,
@@ -140,7 +138,12 @@ export const SearchFood = () => {
   // function to handle search input
   const handleSearch = async (query: string) => {
     setSearchQuery(query);
-    if (!query) return setSearchResults([]);
+    setShowResults(true);
+    if (!query) {
+      setSearchResults([]);
+      setShowResults(false);
+      return;
+    }
 
     setIsSearching(true);
     debouncedSearch(query);
@@ -151,6 +154,8 @@ export const SearchFood = () => {
     setSelectedFood(food);
     setSearchQuery(food.name);
     setSearchResults([]);
+    setShowResults(false);
+
     if (food.type === "recipe") {
       try {
         const recipeInfo = await foodApi.getRecipeInformation(food.id);
@@ -224,12 +229,16 @@ export const SearchFood = () => {
       setUnit("g");
       setMealType("breakfast");
       setSelectedFood(null);
+      setShowSuccess(true);
+      setTimeout(() => {
+        setShowSuccess(false);
+      }, 2000); // Hide success message after 2 seconds
 
-      await AsyncStorage.removeItem("@inputs"); // Clear saved data
+      localStorage.removeItem("inputs"); // Clear saved data
 
       // Reset form...
     } catch (error) {
-      Alert.alert("Error", "Failed to save food entry");
+      alert("Error: Failed to save food entry");
     }
   };
 
@@ -245,7 +254,7 @@ export const SearchFood = () => {
       setUnitItems([
         { label: "g", value: "g" },
         { label: "oz", value: "oz" },
-        { label: "oz", value: "oz" },
+        { label: "ml", value: "ml" },
       ]);
     }
   }, [selectedFood?.type]);
@@ -255,7 +264,7 @@ export const SearchFood = () => {
     const loadData = async () => {
       // Load data here
       try {
-        const savedData = await AsyncStorage.getItem("data");
+        const savedData = localStorage.getItem("data");
         if (savedData !== null) {
           const { savedfoodName, savedAmount, savedMealType } =
             JSON.parse(savedData);
@@ -284,7 +293,7 @@ export const SearchFood = () => {
             unit,
             foodType: selectedFood?.type,
           });
-          await AsyncStorage.setItem("@inputs", dataToSave);
+          localStorage.setItem("inputs", dataToSave);
         } catch (e) {
           console.error("Failed to save data");
         }
@@ -295,150 +304,142 @@ export const SearchFood = () => {
 
   if (isLoading) {
     return (
-      <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
-        <Text>Loading...</Text>
-      </View>
+      <div style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
+        <span>Loading...</span>
+      </div>
     );
   }
-
-  const dismissKeyboardAndCloseDropdowns = () => {
-    Keyboard.dismiss();
-    closeAllDropdowns();
-  };
-
+  // function to close all dropdowns and dismiss keyboard
   const closeAllDropdowns = () => {
     setUnitOpen(false);
     setMealTypeOpen(false);
+    setShowResults(false);
+  };
+
+  const handleFormSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    handleSubmit();
   };
 
   // return the form to add food
   return (
-    <Pressable
+    <div
       style={{ flex: 1, backgroundColor: "white" }}
-      onPress={dismissKeyboardAndCloseDropdowns}
+      onClick={closeAllDropdowns}
     >
-      <View className="flex-1 bg-gray-100 justify-center p-5">
-        <View className="bg-white rounded-lg p-6 shadow-md">
-          <Text className="text-xl font-semibold text-gray-800 mb-6 text-center">
+      <div className="flex-1 bg-gray-100 justify-center p-5" ref={formRef}>
+        <div className="bg-white rounded-lg p-6 shadow-md">
+          <h2 className="text-xl font-semibold text-gray-800 mb-6 text-center">
             Add Food
-          </Text>
+          </h2>
 
-          <View className="space-y-4">
-            <View>
-              <Text className="text-sm text-gray-600 mb-2">Search Food</Text>
-              <TextInput
+          <form className="space-y-4" onSubmit={handleFormSubmit}>
+            <div>
+              <label className="text-sm text-gray-600 mb-2">Search Food</label>
+              <input
                 className={`h-12 border rounded-lg px-4 text-base text-gray-900 ${
                   isFocused1 ? "border-indigo-500" : "border-gray-300"
                 }`}
                 placeholder="Search for food..."
-                placeholderTextColor="#94a3b8"
                 value={searchQuery}
-                onChangeText={handleSearch}
+                onChange={(e) => handleSearch(e.target.value)}
                 onFocus={() => {
                   setIsFocused1(true);
                   closeAllDropdowns();
+                  setShowResults(true); // show results on focus
                 }}
                 onBlur={() => setIsFocused1(false)}
               />
-            </View>
+            </div>
 
-            {searchResults.length > 0 && (
-              <FlatList
-                data={searchResults}
-                keyExtractor={(item) => item.id.toString()}
-                renderItem={({ item }) => (
-                  <TouchableOpacity
+            {showResults && searchResults.length > 0 && (
+              <ul className="border rounded-lg mt-1 bg-white max-h-40 overflow-y-auto shadow">
+                {searchResults.map((item) => (
+                  <li
+                    key={item.id}
                     className="p-3 border-b border-gray-300"
-                    onPress={() => {
-                      handleFoodSelect(item);
-                    }}
+                    onMouseDown={() => handleFoodSelect(item)}
                   >
-                    <Text className="text-gray-800">{item.name}</Text>
-                    <Text className="text-gray-500 text-sm">
+                    <div className="text-gray-800">{item.name}</div>
+                    <div className="text-gray-500 text-sm">
                       {item.type === "ingredient" ? "Ingredient" : "Recipe"}
-                    </Text>
-                  </TouchableOpacity>
-                )}
-              />
+                    </div>
+                  </li>
+                ))}
+              </ul>
             )}
 
-            <View>
-              <Text className="text-sm text-gray-600 mb-2">Amount</Text>
-              <TextInput
+            <div>
+              <label className="text-sm text-gray-600 mb-2">Amount</label>
+              <input
                 className={`h-12 border rounded-lg px-4 text-base text-gray-900 ${
                   isFocused2 ? "border-indigo-500" : "border-gray-300"
                 }`}
                 placeholder="Enter amount (e.g., 100)"
-                placeholderTextColor="#94a3b8"
                 value={amount}
-                onChangeText={setAmount}
+                onChange={(e) => setAmount(e.target.value)}
                 onFocus={() => {
                   setIsFocused2(true);
                   closeAllDropdowns();
                 }}
                 onBlur={() => setIsFocused2(false)}
+                type="number"
+                min="0"
               />
-            </View>
+            </div>
 
-            <View style={{ zIndex: 1000, elevation: 1000 }}>
-              <Text className="text-sm text-gray-600 mb-2">Units</Text>
+            <div>
+              <label className="text-sm text-gray-600 mb-2">Units</label>
 
-              <DropDownPicker
-                open={unitOpen}
+              <select
+                className="h-12 border rounded-lg px-4 text-base text-gray-900 w-full"
                 value={unit}
-                items={unitItems}
-                setOpen={(open) => {
-                  Keyboard.dismiss();
-                  setUnitOpen(open);
-                }}
-                setValue={setUnit}
-                setItems={setUnitItems}
-                style={{
-                  borderColor: "#cbd5e1",
-                  borderRadius: 8,
-                }}
-                dropDownContainerStyle={{
-                  borderColor: "#cbd5e1",
-                }}
-              />
-            </View>
+                onChange={(e) => setUnit(e.target.value)}
+              >
+                {unitItems.map((item) => (
+                  <option key={item.value} value={item.value}>
+                    {item.label}
+                  </option>
+                ))}
+              </select>
+            </div>
 
             {/* Meal Type Dropdown */}
-            <View style={{ zIndex: 999, elevation: 999 }}>
-              <Text className="text-sm text-gray-600 mb-2">Meal Type</Text>
-              <DropDownPicker
-                open={mealTypeOpen}
+            <div>
+              <label className="text-sm text-gray-600 mb-2">Meal Type</label>
+              <select
+                className="h-12 border rounded-lg px-4 text-base text-gray-900 w-full"
                 value={mealType}
-                items={mealTypeItems}
-                setOpen={(open) => {
-                  Keyboard.dismiss();
-                  setMealTypeOpen(open);
-                }}
-                setValue={setMealType}
-                setItems={setMealTypeItems}
-                style={{
-                  borderColor: "#cbd5e1",
-                  borderRadius: 8,
-                }}
-                dropDownContainerStyle={{
-                  borderColor: "#cbd5e1",
-                }}
-              />
-            </View>
-
-            <View className="mt-4">
-              <TouchableOpacity
-                className="h-12 bg-indigo-500 rounded-lg justify-center items-center"
-                onPress={handleSubmit}
+                onChange={(e) => setMealType(e.target.value as any)}
               >
-                <Text className="text-white text-base font-semibold">
-                  Submit
-                </Text>
-              </TouchableOpacity>
-            </View>
-          </View>
-        </View>
-      </View>
-    </Pressable>
+                {mealTypeItems.map((item) => (
+                  <option key={item.value} value={item.value}>
+                    {item.label}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div className="mt-4">
+              <button
+                className="h-12 bg-indigo-500 rounded-lg justify-center items-center"
+                type="submit"
+              >
+                <div className="text-white text-base font-semibold">Submit</div>
+              </button>
+
+              {showSuccess && (
+                <div className="mt-2 p-2 bg-green-100 rounded-md">
+                  <div>
+                    Food added successfully!{" "}
+                    <span className="text-green-500">✓</span>
+                  </div>
+                </div>
+              )}
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
   );
 };
