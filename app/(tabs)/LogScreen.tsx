@@ -1,4 +1,3 @@
-import { Text, View, StyleSheet, FlatList, ScrollView } from "react-native";
 import React from "react";
 import { useFood } from "../FoodProvider";
 import MealList from "../components/MealList";
@@ -8,86 +7,58 @@ export default function LogScreen() {
 
   if (loading) {
     return (
-      <View>
-        <Text>Loading...</Text>
-      </View>
+      <div>
+        <p>Loading...</p>
+      </div>
     );
   }
 
   return (
-    <ScrollView>
-      <View className="flex-1 bg-white">
-        <View className="flex-1 px-4">
+    <div className="flex-1 bg-white">
+      <div className="flex-1 bg-white">
+        <div className="flex-1 px-4">
           {/* Meal Sections */}
-          <View className="flex-1 border-b border-gray-300 py-4">
-            <Text className="text-lg font-bold mb-2">Breakfast</Text>
+          <div className="flex-1 border-b border-gray-300 py-4">
+            <h2 className="text-lg font-bold mb-2">Breakfast</h2>
             <MealList
               mealType="breakfast"
               foodsForMealType={foods.filter(
                 (food) => food.mealType === "breakfast"
               )}
             />
-          </View>
+          </div>
 
-          <View className="flex-1 border-b border-gray-300 py-4">
-            <Text className="text-lg font-bold mb-2">Lunch</Text>
+          <div className="flex-1 border-b border-gray-300 py-4">
+            <h2 className="text-lg font-bold mb-2">Lunch</h2>
             <MealList
               mealType="lunch"
               foodsForMealType={foods.filter(
                 (food) => food.mealType === "lunch"
               )}
             />
-          </View>
+          </div>
 
-          <View className="flex-1 border-b border-gray-300 py-4">
-            <Text className="text-lg font-bold mb-2">Dinner</Text>
+          <div className="flex-1 border-b border-gray-300 py-4">
+            <h2 className="text-lg font-bold mb-2">Dinner</h2>
             <MealList
               mealType="dinner"
               foodsForMealType={foods.filter(
                 (food) => food.mealType === "dinner"
               )}
             />
-          </View>
+          </div>
 
-          <View className="flex-1 border-b border-gray-300 py-4">
-            <Text className="text-lg font-bold mb-2">Snacks</Text>
+          <div className="flex-1 border-b border-gray-300 py-4">
+            <h2 className="text-lg font-bold mb-2">Snacks</h2>
             <MealList
               mealType="snacks"
               foodsForMealType={foods.filter(
                 (food) => food.mealType === "snacks"
               )}
             />
-          </View>
-        </View>
-      </View>
-    </ScrollView>
+          </div>
+        </div>
+      </div>
+    </div>
   );
 }
-
-// const styles = StyleSheet.create({
-//   container: {
-//     flex: 1,
-//     backgroundColor: "#fff",
-//   },
-//   columnContainer: {
-//     flex: 1,
-//     paddingHorizontal: 10,
-//   },
-//   mealContainer: {
-//     flex: 1,
-//     borderBottomWidth: 1,
-//     borderColor: "#ccc",
-//     paddingVertical: 10,
-//   },
-//   titlename: {
-//     fontSize: 18,
-//     fontWeight: "bold",
-//     marginBottom: 8,
-//   },
-//   list: {
-//     flex: 1,
-//   },
-//   listItem: {
-//     paddingVertical: 4,
-//   },
-// });

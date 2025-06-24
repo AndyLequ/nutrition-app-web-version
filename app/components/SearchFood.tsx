@@ -158,7 +158,6 @@ export const SearchFood = () => {
     setSelectedFood(food);
     setSearchQuery(food.name);
     setSearchResults([]);
-    setShowResults(false);
 
     if (food.type === "recipe") {
       try {
@@ -226,6 +225,7 @@ export const SearchFood = () => {
         calories: Number(nutrition.calories),
         carbs: Number(nutrition.carbs),
         fat: Number(nutrition.fat),
+        createdAt: new Date(),
       });
 
       setSearchQuery("");
@@ -327,10 +327,7 @@ export const SearchFood = () => {
 
   // return the form to add food
   return (
-    <div
-      style={{ flex: 1, backgroundColor: "white" }}
-      onClick={closeAllDropdowns}
-    >
+    <div style={{ flex: 1, backgroundColor: "white" }}>
       <div className="flex-1 bg-gray-100 justify-center p-5" ref={formRef}>
         <div className="bg-white rounded-lg p-6 shadow-md">
           <h2 className="text-xl font-semibold text-gray-800 mb-6 text-center">
@@ -369,7 +366,7 @@ export const SearchFood = () => {
                   <li
                     key={item.id}
                     className="p-3 border-b border-gray-300"
-                    onMouseDown={() => handleFoodSelect(item)}
+                    onClick={() => handleFoodSelect(item)}
                   >
                     <div className="text-gray-800">{item.name}</div>
                     <div className="text-gray-500 text-sm">
