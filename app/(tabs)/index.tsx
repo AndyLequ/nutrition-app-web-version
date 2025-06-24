@@ -1,19 +1,47 @@
-import { View, Text, Dimensions } from "react-native";
-import { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useFood } from "../FoodProvider";
 import { NutritionGoals } from "../components/NutritionGoals";
 import { ResetButton } from "../components/ResetButton";
-import Svg, { G, Path, Text as SvgText } from "react-native-svg";
-import * as d3Shape from "d3-shape";
+import * as d3 from "d3";
+import { useMemo } from "react";
 
 export default function Index() {
   const [protein, setProtein] = useState(0);
   const [carbs, setCarbs] = useState(0);
   const [calories, setCalories] = useState(0);
   const [fat, setFat] = useState(0);
+  const [containerWidth, setContainerWidth] = useState(0);
+  const containerRef = useRef<HTMLDivElement>(null);
 
   const { foods } = useFood();
   const safeFoods = Array.isArray(foods) ? foods : [];
+
+  // Memoize DATA to avoid unnecessary recalculations
+  const DATA = useMemo(() => {
+    return [
+      { name: "Protein", value: protein, color: "#FF6384" },
+      { name: "Carbs", value: carbs, color: "#36A2EB" },
+      { name: "Fat", value: fat, color: "#FFCE56" },
+      { name: "Calories", value: calories, color: "#4BC0C0" },
+    ];
+  }, [protein, carbs, fat, calories]);
+
+  //calculate container width for responsive design
+  useEffect(() => {
+    if (containerRef.current) {
+      setContainerWidth(containerRef.current.offsetWidth);
+    }
+
+    const handleResize = () => {
+      if (containerRef.current) {
+        setContainerWidth(containerRef.current.offsetWidth);
+      }
+    };
+    window.addEventListener("resize", handleResize);
+    return () => {
+      window.removeEventListener("resize", handleResize);
+    };
+  }, []);
 
   useEffect(() => {
     const truncateToTwoDecimals = (num: number) => {
@@ -39,119 +67,137 @@ export default function Index() {
     setFat(totalFat);
   }, [safeFoods]);
 
+  //create a pie chart useing D3
+  useEffect(() => {
+    if (!containerRef.current || containerWidth === 0) {
+      return;
+    }
 
-  const DATA = [
-    { name: "Protein", value: protein, color: "#FF6384" },
-    { name: "Carbs", value: carbs, color: "#36A2EB" },
-    { name: "Fat", value: fat, color: "#FFCE56" },
-    { name: "Calories", value: calories, color: "#4BC0C0" },
-  ];
+    const radius = Math.min(containerWidth || 300, 300) / 2;
+    const innerRadius = radius * 0.5;
 
-  const screenWidth = Dimensions.get("window").width * 0.4;
-  const radius = screenWidth * 0.5;
-  const innerRadius = radius * 0.5;
+    const svg = d3.select(containerRef.current).select("svg");
+    svg.selectAll("*").remove(); // Clear previous content
 
-  const totalValue = DATA.reduce((sum, item) => sum + item.value, 0);
+    const newSvg = d3
+      .select(containerRef.current)
+      .append("svg")
+      .attr("viewBox", `0 0 ${radius * 2} ${radius * 2}`)
+      .attr("preserveAspectRatio", "xMidYMid meet")
+      .style("width", "100%")
+      .style("height", "auto")
+      .append("g")
+      .attr("transform", `translate(${radius}, ${radius})`);
 
-  const pieGenerator = d3Shape.pie().value((d) => d.value);
-  const arcs = pieGenerator(DATA);
+    const pie = d3
+      .pie()
+      .value((d) => d.value)
+      .sort(null);
 
-  const arcGenerator = d3Shape
-    .arc()
-    .innerRadius(innerRadius)
-    .outerRadius(radius);
+    const arc = d3.arc().innerRadius(innerRadius).outerRadius(radius);
+
+    const arcs = pie(DATA as any);
+
+    newSvg
+      .selectAll("path")
+      .data(arcs)
+      .enter()
+      .append("path")
+      .attr("d", arc)
+      .attr("fill", (d: any) => d.data.color)
+      .attr("stroke", "#fff")
+      .attr("stroke-width", 2);
+
+    newSvg
+      .append("text")
+      .attr("text-anchor", "middle")
+      .attr("dy", "0.35em")
+      .attr("font-size", "20px")
+      .attr("font-weight", "bold")
+      .text(`${calories.toFixed(0)} kcal`);
+  }, [DATA, containerWidth, calories]);
 
   return (
-    <View className="p-4 bg-white rounded-lg shadow-md">
-      <View className="bg-white p-3 rounded-lg shadow-sm">
-        <Text className="text-lg font-bold mb-4 text-gray-800">Summary</Text>
-        <View className="flex-row justify-between">
-          <View className="items-center px-3">
-            <Text className="text-sm text-gray-500 mb-1">Calories</Text>
-            <Text className="text-base font-medium text-gray-800">
+    <div className="flex flex-col h-screen overflow-y-scroll bg-gray-100 p-4">
+      <div className="p-4">
+        <div className="text-lg font-bold mb-4 text-gray-800">Summary</div>
+        <div className="flex flex-row justify-between mt-4">
+          <div className="items-center px-3">
+            <div className="text-sm text-gray-500 mb-1">Calories</div>
+            <div className="text-base font-medium text-gray-800">
               {calories}
-            </Text>
-          </View>
-          <View className="items-center px-3">
-            <Text className="text-sm text-gray-500 mb-1">Protein</Text>
-            <Text className="text-base font-medium text-gray-800">
-              {protein}
-            </Text>
-          </View>
-          <View className="items-center px-3">
-            <Text className="text-sm text-gray-500 mb-1">Carbs</Text>
-            <Text className="text-base font-medium text-gray-800">{carbs}</Text>
-          </View>
-          <View className="items-center px-3">
-            <Text className="text-sm text-gray-500 mb-1">Fat</Text>
-            <Text className="text-base font-medium text-gray-800">{fat}</Text>
-          </View>
-        </View>
-      </View>
+            </div>
+          </div>
+          <div className="items-center px-3">
+            <div className="text-sm text-gray-500 mb-1">Protein</div>
+            <div className="text-base font-medium text-gray-800">{protein}</div>
+          </div>
+          <div className="items-center px-3">
+            <div className="text-sm text-gray-500 mb-1">Carbs</div>
+            <div className="text-base font-medium text-gray-800">{carbs}</div>
+          </div>
+          <div className="items-center px-3">
+            <div className="text-sm text-gray-500 mb-1">Fat</div>
+            <div className="text-base font-medium text-gray-800">{fat}</div>
+          </div>
+        </div>
+      </div>
 
       {/* combining nutrition goals and pie chart to be side by side */}
-      <View className="flex-row flex-wrap justify-between mt-4">
+      <div className="flex flex-row flex-wrap justify-between mt-4">
         {/* Nutrition Goals */}
-        <View className="flex-1 min-w-[50%] md:min-w[55%] mb-4 md:mb-0 md:pr-4">
+        <div className="flex-1 min-w-[50%] md:min-w[55%] mb-4 md:mb-0 md:pr-4">
           <NutritionGoals />
-        </View>
+        </div>
 
         {/* Pie Chart */}
+        <div className="lg:w-1/3">
+          <div className="bg-white p-4 rounded-lg shadow-sm">
+            <h3 className="text-lg font-semibold mb-4 text-gray-800">
+              Macro Distribution
+            </h3>
 
-        <View className="flex-1 min-w-[45%] md:min-w-[45%] pl-2">
-          <View className="bg-white p-3 rounded-lg shadow-sm">
-            <View className="w-64 max-w-full aspect-square mx-auto">
-              <Text className="text-2x1 font-bold mb-5 text-gray-800">
-                Chart
-              </Text>
+            <div className="flex justify-center">
+              <div
+                ref={containerRef}
+                className="flex justify-center items-center w-full max-w-[300px] mx-auto"
+              >
+                {DATA.every((d) => d.value === 0) ? (
+                  <div className="text-center text-gray-500 py-10">
+                    <div className="text-lg mb-2">No data available</div>
+                    <p className="text-sm">
+                      Add foods to see your macro distribution
+                    </p>
+                  </div>
+                ) : null}
+              </div>
+            </div>
 
-              <Svg width={screenWidth} height={screenWidth}>
-                <G transform={`translate(${radius}, ${radius})`}>
-                  {arcs.map((arc, index) => (
-                    <Path
-                      key={index}
-                      d={arcGenerator(arc)}
-                      fill={DATA[index].color}
-                    />
-                  ))}
-                  <SvgText
-                    x={0}
-                    y={0}
-                    textAnchor="middle"
-                    fontSize="20"
-                    fill="#000"
-                    fontWeight="bold"
-                  ></SvgText>
-                </G>
-              </Svg>
-            </View>
-            <View className="mt-3 w-full px-2">
-              <Text className="text-md font-medium mb-2 text-gray-700">
-                Legend
-              </Text>
-
-              <View className="flex-row flex-wrap justify-center gap-1">
+            <div className="mt-6">
+              <h4 className="text-md font-medium mb-3 text-gray-700">
+                Macro Legend
+              </h4>
+              <div className="grid grid-cols-3 gap-2">
                 {DATA.map((item, index) => (
-                  <View
+                  <div
                     key={index}
-                    className="flex-row items-center gap-2 px-3 py-1 bg-gray-100 rounded-full mb-2"
+                    className="flex items-center p-2 bg-gray-50 rounded"
                   >
-                    <View
-                      className="w-4 h-4 rounded-sm"
+                    <div
+                      className="w-4 h-4 rounded-sm mr-2"
                       style={{ backgroundColor: item.color }}
-                    />
-                    <Text className="text-sm text-gray-600">{item.name}</Text>
-                  </View>
+                    ></div>
+                    <span className="text-sm text-gray-700">{item.name}</span>
+                    <span className="text-sm font-medium text-gray-800 ml-auto">
+                      {item.value}g
+                    </span>
+                  </div>
                 ))}
-              </View>
-            </View>
-          </View>
-        </View>
-      </View>
-
-      <View className="mt-4">
-        <ResetButton />
-      </View>
-    </View>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
   );
 }
