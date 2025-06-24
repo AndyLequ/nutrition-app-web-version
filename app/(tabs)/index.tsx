@@ -141,7 +141,12 @@ export default function Index() {
             <div className="text-base font-medium text-gray-800">{fat}</div>
           </div>
         </div>
+
+        <div className="mt-6">
+          <ResetButton />
+        </div>
       </div>
+
 
       {/* combining nutrition goals and pie chart to be side by side */}
       <div className="flex flex-row flex-wrap justify-between mt-4">
