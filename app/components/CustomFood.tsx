@@ -1,24 +1,9 @@
 import React, { useEffect, useState } from "react";
-import {
-  StyleSheet,
-  View,
-  TextInput,
-  Text,
-  Button,
-  TouchableOpacity,
-  ActivityIndicator,
-  FlatList,
-  Alert,
-  Pressable,
-  Keyboard,
-} from "react-native";
-import { Picker } from "@react-native-picker/picker";
-import AsyncStorage from "@react-native-async-storage/async-storage";
+
 import { useFood } from "../FoodProvider";
 import debounce from "lodash.debounce";
 import axios from "axios";
 import { foodApi } from "../../services/api";
-import DropDownPicker from "react-native-dropdown-picker";
 
 import { FoodItem } from "../FoodProvider";
 
@@ -64,11 +49,6 @@ export const CustomFood = () => {
 
   const { addFood } = useFood();
 
-  const dismissKeyboardAndCloseDropdowns = () => {
-    Keyboard.dismiss();
-    closeAllDropdowns();
-  };
-
   const closeAllDropdowns = () => {
     setUnitOpen(false);
     setMealTypeOpen(false);
@@ -76,8 +56,10 @@ export const CustomFood = () => {
 
   // function to handle custom food submission
   const handleSubmit = async () => {
+    e.preventDefault();
+
     if (!foodName || !amount || !protein || !calories) {
-      Alert.alert("Please fill in all fields");
+      alert("Please fill in all fields");
       return;
     }
 
@@ -85,7 +67,7 @@ export const CustomFood = () => {
     const caloriesValue = parseFloat(calories);
 
     if (isNaN(proteinValue) || isNaN(caloriesValue)) {
-      Alert.alert("Please enter valid numbers for protein and calories");
+      alert("Please enter valid numbers for protein and calories");
       return;
     }
     try {
@@ -104,7 +86,7 @@ export const CustomFood = () => {
       addFood(newFood);
     } catch (error) {
       console.error("Error adding food:", error);
-      Alert.alert("Error adding food. Please try again.");
+      alert("Error adding food. Please try again.");
     } finally {
       setShowSuccess(true);
       setTimeout(() => {
@@ -121,159 +103,162 @@ export const CustomFood = () => {
   };
 
   return (
-    <Pressable
-      style={{ flex: 1, backgroundColor: "white" }}
-      onPress={dismissKeyboardAndCloseDropdowns}
-    >
-      <View className="flex-1 bg-gray-100 justify-center p-5">
-        <View className="bg-white rounded-lg p-6 shadow-md">
-          <Text className="text-xl font-semibold text-gray-800 mb-6 text-center">
+    <div style={{ flex: 1, backgroundColor: "white" }}>
+      <div className="flex-1 bg-gray-100 justify-center p-5">
+        <div className="bg-white rounded-lg p-6 shadow-md">
+          <h1 className="text-xl font-semibold text-gray-800 mb-6 text-center">
             Add Food
-          </Text>
+          </h1>
 
-          <View className="space-y-4">
-            <View>
-              <Text className="text-sm text-gray-600 mb-2">Enter Food</Text>
-              <TextInput
+          <form className="space-y-4" onSubmit={handleSubmit}>
+            {/* food name input */}
+            <div>
+              <label className="text-sm text-gray-600 mb-2">Enter Food</label>
+              <input
+                type="text"
                 className={`h-12 border rounded-lg px-4 text-base text-gray-900 ${
                   isFocused1 ? "border-indigo-500" : "border-gray-300"
                 }`}
                 placeholder="Enter food..."
-                placeholderTextColor="#94a3b8"
                 value={foodName}
-                onChangeText={setFoodName}
+                onChange={(e) => setFoodName(e.target.value)}
                 onFocus={() => {
                   setIsFocused1(true);
                   closeAllDropdowns();
                 }}
                 onBlur={() => setIsFocused1(false)}
               />
-            </View>
+            </div>
 
-            <View>
-              <Text className="text-sm text-gray-600 mb-2">Amount</Text>
-              <TextInput
+            {/* amount input */}
+            <div>
+              <label className="text-sm text-gray-600 mb-2">Amount</label>
+              <input
                 className={`h-12 border rounded-lg px-4 text-base text-gray-900 ${
                   isFocused2 ? "border-indigo-500" : "border-gray-300"
                 }`}
                 placeholder="Enter amount (e.g., 100g)"
-                placeholderTextColor="#94a3b8"
+                type="text"
+                min="0"
                 value={amount}
-                onChangeText={setAmount}
+                onChange={(e) => setAmount(e.target.value)}
                 onFocus={() => {
                   setIsFocused2(true);
                   closeAllDropdowns();
                 }}
                 onBlur={() => setIsFocused2(false)}
               />
-            </View>
+            </div>
 
             {/* protein input */}
-            <View className="text-sm text-gray-600 mb-2">
-              <Text className="text-sm text-gray-600 mb-2">Protein</Text>
-              <TextInput
+            <div className="text-sm text-gray-600 mb-2">
+              <label className="text-sm text-gray-600 mb-2">Protein</label>
+              <input
                 className={`h-12 border rounded-lg px-4 text-base text-gray-900 ${
                   isFocused3 ? "border-indigo-500" : "border-gray-300"
                 }`}
                 placeholder="Enter protein in grams"
-                placeholderTextColor="#94a3b8"
+                type="number"
+                min="0"
                 value={protein}
-                onChangeText={setProtein}
+                onChange={(e) => setProtein(e.target.value)}
                 onFocus={() => {
                   setIsFocused3(true);
                   closeAllDropdowns();
                 }}
                 onBlur={() => setIsFocused3(false)}
               />
-            </View>
+            </div>
 
             {/* calorie input */}
-            <View className="text-sm text-gray-600 mb-2">
-              <Text className="text-sm text-gray-600 mb-2">Calories</Text>
-              <TextInput
+            <div className="text-sm text-gray-600 mb-2">
+              <label className="text-sm text-gray-600 mb-2">Calories</label>
+              <input
                 className={`h-12 border rounded-lg px-4 text-base text-gray-900 ${
                   isFocused4 ? "border-indigo-500" : "border-gray-300"
                 }`}
+                type="number"
+                min="0"
                 placeholder="Enter calories"
-                placeholderTextColor="#94a3b8"
                 value={calories}
-                onChangeText={setCalories}
+                onChange={(e) => setCalories(e.target.value)}
                 onFocus={() => {
                   setIsFocused4(true);
                   closeAllDropdowns();
                 }}
                 onBlur={() => setIsFocused4(false)}
               />
-            </View>
+            </div>
 
-            <View style={{ zIndex: 1000, elevation: 1000 }}>
-              <Text className="text-sm text-gray-600 mb-2">Units</Text>
+            <div className="text-sm text-gray-600 mb-2">
+              <label className="text-sm text-gray-600 mb-2">Units</label>
 
-              <DropDownPicker
-                open={unitOpen}
+              <select
                 value={unit}
-                items={unitItems}
-                setOpen={(open) => {
-                  Keyboard.dismiss();
-                  setUnitOpen(open);
+                onChange={(e) => setUnit(e.target.value)}
+                className={`h-12 border rounded-lg px-4 text-base text-gray-900 ${
+                  unitOpen ? "border-indigo-500" : "border-gray-300"
+                }`}
+                onFocus={() => {
+                  setUnitOpen(true);
+                  closeAllDropdowns();
                 }}
-                setValue={setUnit}
-                setItems={setUnitItems}
-                style={{
-                  borderColor: "#cbd5e1",
-                  borderRadius: 8,
-                }}
-                dropDownContainerStyle={{
-                  borderColor: "#cbd5e1",
-                }}
-              />
-            </View>
+                onBlur={() => setUnitOpen(false)}
+              >
+                {unitItems.map((item) => (
+                  <option key={item.value} value={item.value}>
+                    {item.label}
+                  </option>
+                ))}
+              </select>
+            </div>
 
             {/* Meal Type Dropdown */}
-            <View style={{ zIndex: 999, elevation: 999 }}>
-              <Text className="text-sm text-gray-600 mb-2">Meal Type</Text>
-              <DropDownPicker
-                open={mealTypeOpen}
+            <div className="text-sm text-gray-600 mb-2">
+              <label className="text-sm text-gray-600 mb-2">Meal Type</label>
+              <select
                 value={mealType}
-                items={mealTypeItems}
-                setOpen={(open) => {
-                  Keyboard.dismiss();
-                  setMealTypeOpen(open);
+                onChange={(e) => setMealType(e.target.value)}
+                className={`h-12 border rounded-lg px-4 text-base text-gray-900 ${
+                  mealTypeOpen ? "border-indigo-500" : "border-gray-300"
+                }`}
+                onFocus={() => {
+                  setMealTypeOpen(true);
+                  closeAllDropdowns();
                 }}
-                setValue={setMealType}
-                setItems={setMealTypeItems}
                 style={{
                   borderColor: "#cbd5e1",
                   borderRadius: 8,
                 }}
-                dropDownContainerStyle={{
-                  borderColor: "#cbd5e1",
-                }}
-              />
-            </View>
-
-            <View className="mt-4">
-              <TouchableOpacity
-                className="h-12 bg-indigo-500 rounded-lg justify-center items-center"
-                onPress={handleSubmit}
               >
-                <Text className="text-white text-base font-semibold">
-                  Submit
-                </Text>
-              </TouchableOpacity>
+                {mealTypeItems.map((item) => (
+                  <option key={item.value} value={item.value}>
+                    {item.label}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div className="mt-4">
+              <button
+                className="h-12 bg-indigo-500 rounded-lg justify-center items-center"
+                type="submit"
+              >
+                Submit
+              </button>
 
               {showSuccess && (
-                <View className="mt-2 p-2 bg-green-100 rounded-md">
-                  <Text>
+                <div className="mt-2 p-2 bg-green-100 rounded-md">
+                  <label className="text-green-700">
                     Food added successfully!{" "}
-                    <Text className="text-green-500">✓</Text>
-                  </Text>
-                </View>
+                    <label className="text-green-500">✓</label>
+                  </label>
+                </div>
               )}
-            </View>
-          </View>
-        </View>
-      </View>
-    </Pressable>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
   );
 };

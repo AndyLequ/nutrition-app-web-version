@@ -122,6 +122,10 @@ export const SearchFood = () => {
         }));
 
         setSearchResults([...ingredientResults, ...recipeResults]);
+        console.log("Search results:", [
+          ...ingredientResults,
+          ...recipeResults,
+        ]);
       } catch (error) {
         console.error("Error fetching data from spoonacular API", error);
         setSearchResults([]);
@@ -348,7 +352,14 @@ export const SearchFood = () => {
                   closeAllDropdowns();
                   setShowResults(true); // show results on focus
                 }}
-                onBlur={() => setIsFocused1(false)}
+                onBlur={(e) => {
+                  if (
+                    !e.relatedTarget ||
+                    !e.relatedTarget.closest(".search-results")
+                  ) {
+                    setIsFocused1(false);
+                  }
+                }}
               />
             </div>
 
