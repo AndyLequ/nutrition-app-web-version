@@ -55,9 +55,9 @@ export const CustomFood = () => {
   };
 
   // function to handle custom food submission
-  const handleSubmit = async () => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-
+    
     if (!foodName || !amount || !protein || !calories) {
       alert("Please fill in all fields");
       return;
