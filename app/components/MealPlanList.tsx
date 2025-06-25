@@ -12,7 +12,6 @@ import {
 import { Picker } from "@react-native-picker/picker";
 import type { MealType } from "../../services/types";
 import { foodApi } from "../../services/api";
-import AsyncStorage from "@react-native-async-storage/async-storage";
 
 interface Recipe {
   id: number;
@@ -65,13 +64,13 @@ const MealPlanList = () => {
   const [amount, setAmount] = useState("1");
   const displayPlans = mealPlans.length > 0 ? mealPlans : initialMealData;
 
-  const STORAGE_KEY = "@MealPlanList:mealPlans";
+  const STORAGE_KEY = "MealPlanList:mealPlans";
 
   useEffect(() => {
     const loadMealPlans = async () => {
       console.log("[DEBUG] Loading meal plans from storage...");
       try {
-        const storedMealPlans = await AsyncStorage.getItem(STORAGE_KEY);
+        const storedMealPlans = localStorage.getItem(STORAGE_KEY);
         console.log("[DEBUG] Stored meal plans:", storedMealPlans);
         if (storedMealPlans) {
           console.log("[DEBUG] Meal plans loaded successfully.");
@@ -88,7 +87,7 @@ const MealPlanList = () => {
     const saveMealPlans = async () => {
       console.log("[DEBUG] Saving meal plans to storage...", mealPlans);
       try {
-        await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(mealPlans));
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(mealPlans));
         console.log("[DEBUG] Meal plans saved successfully.");
       } catch (error) {
         console.error("Failed to save meal plans to storage:", error);
@@ -236,7 +235,7 @@ const MealPlanList = () => {
 
   const clearAllMeals = async () => {
     try {
-      await AsyncStorage.removeItem(STORAGE_KEY);
+      localStorage.removeItem(STORAGE_KEY);
       setMealPlans(initialMealData);
       //reset any related states
       setSelectedRecipe(null);
@@ -248,18 +247,19 @@ const MealPlanList = () => {
   };
 
   const confirmClear = () => {
-    Alert.alert(
-      "Clear All Meals",
-      "Are you sure you want to delete all meal entries?",
-      [
-        { text: "Cancel", style: "cancel" },
-        { text: "Clear All", onPress: clearAllMeals, style: "destructive" },
-      ]
-    );
+    if (window.confirm("Are you sure you want to clear all meals?")) {
+      clearAllMeals();
+    }
   };
 
   const renderDay = ({ item }: { item: (typeof mealPlans)[0] }) => (
-    <View className="bg-white rounded-lg p-4 mb-3 shadow-sm">
+    <View
+      className="bg-white rounded-xl p-4 mb-4 shadow-md border border-gray-100"
+      style={{
+        borderLeftWidth: 5,
+        borderLeftColor: expandedDay === item.date ? "#6366F1" : "#E5E7EB",
+      }}
+    >
       <TouchableOpacity
         onPress={() => {
           toggleDay(item.date);
@@ -267,33 +267,66 @@ const MealPlanList = () => {
         }}
       >
         <View className="flex-row justify-between items-center">
-          <Text className="text-lg font-semibold text-slate-800">
+          <Text className="text-lg font-bold text-gray-800">
             {new Date(item.date).toLocaleDateString("en-US", {
               weekday: "long",
               month: "short",
               day: "numeric",
             })}
           </Text>
-          <Text className="text-slate-400 text-lg">
+          <Text className="text-gray-500 text-lg">
             {expandedDay === item.date ? "▼" : "▶"}
           </Text>
+        </View>
+
+        {/* Daily summary bar */}
+        <View className="flex-row justify-between mt-2">
+          <View className="items-center">
+            <Text className="text-xs text-gray-500">Breakfast</Text>
+            <Text className="text-sm font-medium">
+              {item.meals.breakfast.items.length} items
+            </Text>
+          </View>
+          <View className="items-center">
+            <Text className="text-xs text-gray-500">Lunch</Text>
+            <Text className="text-sm font-medium">
+              {item.meals.lunch.items.length} items
+            </Text>
+          </View>
+          <View className="items-center">
+            <Text className="text-xs text-gray-500">Dinner</Text>
+            <Text className="text-sm font-medium">
+              {item.meals.dinner.items.length} items
+            </Text>
+          </View>
+          <View className="items-center">
+            <Text className="text-xs text-gray-500">Snacks</Text>
+            <Text className="text-sm font-medium">
+              {item.meals.snacks.items.length} items
+            </Text>
+          </View>
         </View>
       </TouchableOpacity>
 
       {expandedDay === item.date && (
-        <View className="mt-3">
-          <View className="mb-4">
+        <View className="mt-4">
+          {/* Search and Picker Section */}
+          <View className="mb-4 bg-gray-50 rounded-lg p-3">
+            <Text className="text-sm font-medium text-gray-700 mb-2">
+              Add Recipe to Meal
+            </Text>
+
             <TextInput
-              className="border rounded-lg p-2 mb-2"
+              className="bg-white border border-gray-300 rounded-lg p-3 mb-3"
               placeholder="Search for recipes..."
               value={searchQuery}
               onChangeText={setSearchQuery}
             />
-            <View className="border rounded-lg overflow-hidden">
+
+            <View className="bg-white border border-gray-300 rounded-lg mb-3">
               <Picker
                 selectedValue={selectedMealType}
                 onValueChange={(itemValue) => setSelectedMealType(itemValue)}
-                className="bg-white border rounded-lg p-2 mb-2"
               >
                 <Picker.Item label="Select Meal Type" value="" />
                 <Picker.Item label="Breakfast" value="breakfast" />
@@ -302,74 +335,100 @@ const MealPlanList = () => {
                 <Picker.Item label="Snacks" value="snacks" />
               </Picker>
             </View>
-            {loading && <ActivityIndicator size="small" />}
-            {error && <Text className="text-red-500 text-sm">{error}</Text>}
+
+            {loading && <ActivityIndicator size="small" color="#6366F1" />}
+            {error && (
+              <Text className="text-red-500 text-sm mt-2">{error}</Text>
+            )}
           </View>
-          {/* search results */}
+
+          {/* Search Results */}
           <FlatList
             data={searchResults}
             keyExtractor={(item) => item.id.toString()}
             renderItem={({ item }) => (
               <TouchableOpacity
-                className="p-2 border-b border-gray-100"
+                className="p-3 bg-white border-b border-gray-200"
                 onPress={() => handleRecipeSelect(item)}
               >
-                <Text className="text-base">{item.title}</Text>
-                <Text className="text-sm text-gray-500">
+                <Text className="text-base font-medium text-gray-800">
+                  {item.title}
+                </Text>
+                <Text className="text-sm text-gray-500 mt-1">
                   {item.servings} servings
                 </Text>
               </TouchableOpacity>
             )}
+            className="max-h-40 mb-4"
           />
 
+          {/* Selected Recipe */}
           {selectedRecipe && (
-            <View className="mt-4">
+            <View className="bg-indigo-50 rounded-lg p-4 mb-4">
+              <Text className="font-medium text-gray-800 mb-2">
+                Add {selectedRecipe.title}
+              </Text>
+
               <TextInput
-                className="border rounded-lg p-2 mb-2"
-                placeholder="Amount"
+                className="bg-white border border-gray-300 rounded-lg p-3 mb-3"
+                placeholder="Amount (e.g., 2)"
                 value={amount}
                 onChangeText={setAmount}
                 keyboardType="numeric"
               />
+
               <TouchableOpacity
-                className="bg-blue-500 p-2 rounded-lg"
+                className="bg-indigo-600 p-3 rounded-lg items-center"
                 onPress={addRecipeToMealPlan}
               >
-                <Text className="text-white text-center">
-                  Add {selectedRecipe.title}
-                </Text>
+                <Text className="text-white font-medium">Add to Meal Plan</Text>
               </TouchableOpacity>
             </View>
           )}
 
-          {/* Meal Items List */}
+          {/* Meal Sections */}
           {Object.entries(item.meals).map(([mealType, meal]) => (
             <View key={mealType} className="mt-4">
-              <Text className="font-medium text-slate-800 mb-2">
-                {mealType.charAt(0).toUpperCase() + mealType.slice(1)}:
-              </Text>
+              <View className="flex-row justify-between items-center mb-2">
+                <Text className="font-bold text-gray-800">
+                  {mealType.charAt(0).toUpperCase() + mealType.slice(1)}
+                </Text>
+                <Text className="text-sm text-gray-500">
+                  {meal.totalCalories} cal • {meal.totalProtein}g protein
+                </Text>
+              </View>
 
-              {meal.items.map((food, index) => (
-                <View
-                  key={`${food.id}-${index}`}
-                  className="bg-white p-2 rounded mb-2 flex-row justify-between items-center shadow-sm border border-gray-200"
-                >
-                  <View>
-                    <Text className="text-slate-800">{food.name}</Text>
-                    <Text className="text-slate-500 text-sm">
-                      {food.calories} cal • {food.protein}g protein
-                    </Text>
-                  </View>
-                  <TouchableOpacity
-                    className="bg-red-500 px-3 py-1 rounded"
-                    onPress={() =>
-                      deleteMealItem(item.date, mealType as MealType, food.id)
-                    }
+              {meal.items.length > 0 ? (
+                meal.items.map((food, index) => (
+                  <View
+                    key={`${food.id}-${index}`}
+                    className="bg-white p-3 rounded-lg mb-2 flex-row justify-between items-center border border-gray-200"
                   >
-                    <Text className="text-white text-sm font-bold">Delete</Text>
-                  </TouchableOpacity>
-                </View>
-              ))}
+                    <View className="flex-1">
+                      <Text className="text-gray-800 font-medium">
+                        {food.name}
+                      </Text>
+                      <Text className="text-gray-500 text-sm mt-1">
+                        {food.calories} cal • {food.protein}g protein
+                      </Text>
+                    </View>
+                    <TouchableOpacity
+                      className="bg-red-100 px-3 py-1 rounded-full"
+                      onPress={() =>
+                        deleteMealItem(item.date, mealType as MealType, food.id)
+                      }
+                    >
+                      <Text className="text-red-600 text-sm font-medium">
+                        Remove
+                      </Text>
+                    </TouchableOpacity>
+                  </View>
+                ))
+              ) : (
+                <Text className="text-gray-500 text-center py-3">
+                  No items added yet
+                </Text>
+              )}
             </View>
           ))}
         </View>
@@ -378,8 +437,8 @@ const MealPlanList = () => {
   );
 
   return (
-    <View className="flex-1 p-4 bg-slate-50">
-      <Text className="text-2xl font-bold text-center text-slate-800 mb-4">
+    <View className="flex-1 p-4 bg-gray-50">
+      <Text className="text-2xl font-bold text-center text-gray-800 mb-4">
         Weekly Meal Plan
       </Text>
 
@@ -388,16 +447,20 @@ const MealPlanList = () => {
         renderItem={renderDay}
         keyExtractor={(item) => item.date}
         ListEmptyComponent={
-          <Text className="text-center text-slate-500">
-            No meal plans created yet. Start by adding meals to days!
-          </Text>
+          <View className="bg-white p-6 rounded-xl items-center">
+            <Text className="text-gray-500 text-center">
+              No meal plans created yet. Start by adding meals to days!
+            </Text>
+          </View>
         }
+        className="mb-4"
       />
+
       <TouchableOpacity
         onPress={confirmClear}
-        className="bg-red-500 px-4 py-2 rounded-lg justify-center items-center"
+        className="bg-gray-200 px-4 py-3 rounded-lg items-center"
       >
-        <Text className="text-white font-medium">Clear All</Text>
+        <Text className="text-gray-800 font-medium">Clear All Meals</Text>
       </TouchableOpacity>
     </View>
   );
