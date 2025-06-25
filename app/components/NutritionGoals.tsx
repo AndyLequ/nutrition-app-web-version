@@ -56,7 +56,7 @@ export const NutritionGoals = () => {
 
   return (
     <View className="bg-white p-5 rounded-lg shadow-sm mb-4">
-      <Text className="text-2x1 font-bold mb-5 text-gray-800">
+      <Text className="text-2xl font-bold mb-5 text-gray-800">
         Nutrition Goals
       </Text>
 

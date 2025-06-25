@@ -76,8 +76,7 @@ export default function Index() {
     const radius = Math.min(containerWidth || 300, 300) / 2;
     const innerRadius = radius * 0.5;
 
-    const svg = d3.select(containerRef.current).select("svg");
-    svg.selectAll("*").remove(); // Clear previous content
+    d3.select(containerRef.current).select("svg").remove(); // Clear previous SVG
 
     const newSvg = d3
       .select(containerRef.current)
@@ -147,26 +146,22 @@ export default function Index() {
         </div>
       </div>
 
-
       {/* combining nutrition goals and pie chart to be side by side */}
-      <div className="flex flex-row flex-wrap justify-between mt-4">
+      <div className="flex flex-col flex-1">
         {/* Nutrition Goals */}
-        <div className="flex-1 min-w-[50%] md:min-w[55%] mb-4 md:mb-0 md:pr-4">
+        <div className="w-full px-4 py-2">
           <NutritionGoals />
         </div>
 
         {/* Pie Chart */}
-        <div className="lg:w-1/3">
-          <div className="bg-white p-4 rounded-lg shadow-sm">
+        <div className="w-full px-4 py-2">
+          <div className="bg-white p-4 rounded-lg shadow-md">
             <h3 className="text-lg font-semibold mb-4 text-gray-800">
               Macro Distribution
             </h3>
 
             <div className="flex justify-center">
-              <div
-                ref={containerRef}
-                className="flex justify-center items-center w-full max-w-[300px] mx-auto"
-              >
+              <div ref={containerRef} className="w-full max-w-[400px]">
                 {DATA.every((d) => d.value === 0) ? (
                   <div className="text-center text-gray-500 py-10">
                     <div className="text-lg mb-2">No data available</div>
