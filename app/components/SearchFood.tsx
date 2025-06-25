@@ -327,125 +327,153 @@ export const SearchFood = () => {
 
   // return the form to add food
   return (
-    <div style={{ flex: 1, backgroundColor: "white" }}>
-      <div className="flex-1 bg-gray-100 justify-center p-5" ref={formRef}>
-        <div className="bg-white rounded-lg p-6 shadow-md">
-          <h2 className="text-xl font-semibold text-gray-800 mb-6 text-center">
-            Add Food
-          </h2>
+    <div className="min-h-screen flex items-center justify-center p-4 sm:p-6 lg:p-8 bg-gray-50">
+      <div className="w-full max-w-md">
+        <div
+          className="bg-white rounded-xl shadow-lg overflow-hidden"
+          ref={formRef}
+        >
+          <div className="p-6">
+            <h2 className="text-xl font-semibold text-gray-800 mb-6 text-center">
+              Add Food
+            </h2>
 
-          <form className="space-y-4" onSubmit={handleFormSubmit}>
-            <div>
-              <label className="text-sm text-gray-600 mb-2">Search Food</label>
-              <input
-                className={`h-12 border rounded-lg px-4 text-base text-gray-900 ${
-                  isFocused1 ? "border-indigo-500" : "border-gray-300"
-                }`}
-                placeholder="Search for food..."
-                value={searchQuery}
-                onChange={(e) => handleSearch(e.target.value)}
-                onFocus={() => {
-                  setIsFocused1(true);
-                  closeAllDropdowns();
-                  setShowResults(true); // show results on focus
-                }}
-                onBlur={(e) => {
-                  if (
-                    !e.relatedTarget ||
-                    !e.relatedTarget.closest(".search-results")
-                  ) {
-                    setIsFocused1(false);
-                  }
-                }}
-              />
-            </div>
+            <form className="space-y-5" onSubmit={handleFormSubmit}>
+              <div className="space-y-2">
+                <label className="block text-sm font-medium text-gray-700">
+                  Search Food
+                </label>
+                <input
+                  className={`w-full h-12 px-4 rounded-lg ${
+                    isFocused1
+                      ? "border-indigo-500 ring-1 ring-indigo-200"
+                      : "border-gray-300"
+                  } text-base text-gray-900 focus:outline-none transition-colors`}
+                  placeholder="Search for food..."
+                  value={searchQuery}
+                  onChange={(e) => handleSearch(e.target.value)}
+                  onFocus={() => {
+                    setIsFocused1(true);
+                    closeAllDropdowns();
+                    setShowResults(true); // show results on focus
+                  }}
+                  onBlur={(e) => {
+                    if (
+                      !e.relatedTarget ||
+                      !e.relatedTarget.closest(".search-results")
+                    ) {
+                      setIsFocused1(false);
+                    }
+                  }}
+                />
+              </div>
 
-            {showResults && searchResults.length > 0 && (
-              <ul className="border rounded-lg mt-1 bg-white max-h-40 overflow-y-auto shadow">
-                {searchResults.map((item) => (
-                  <li
-                    key={item.id}
-                    className="p-3 border-b border-gray-300"
-                    onClick={() => handleFoodSelect(item)}
-                  >
-                    <div className="text-gray-800">{item.name}</div>
-                    <div className="text-gray-500 text-sm">
-                      {item.type === "ingredient" ? "Ingredient" : "Recipe"}
-                    </div>
-                  </li>
-                ))}
-              </ul>
-            )}
-
-            <div>
-              <label className="text-sm text-gray-600 mb-2">Amount</label>
-              <input
-                className={`h-12 border rounded-lg px-4 text-base text-gray-900 ${
-                  isFocused2 ? "border-indigo-500" : "border-gray-300"
-                }`}
-                placeholder="Enter amount (e.g., 100)"
-                value={amount}
-                onChange={(e) => setAmount(e.target.value)}
-                onFocus={() => {
-                  setIsFocused2(true);
-                  closeAllDropdowns();
-                }}
-                onBlur={() => setIsFocused2(false)}
-                type="number"
-                min="0"
-              />
-            </div>
-
-            <div>
-              <label className="text-sm text-gray-600 mb-2">Units</label>
-
-              <select
-                className="h-12 border rounded-lg px-4 text-base text-gray-900 w-full"
-                value={unit}
-                onChange={(e) => setUnit(e.target.value)}
-              >
-                {unitItems.map((item) => (
-                  <option key={item.value} value={item.value}>
-                    {item.label}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            {/* Meal Type Dropdown */}
-            <div>
-              <label className="text-sm text-gray-600 mb-2">Meal Type</label>
-              <select
-                className="h-12 border rounded-lg px-4 text-base text-gray-900 w-full"
-                value={mealType}
-                onChange={(e) => setMealType(e.target.value as any)}
-              >
-                {mealTypeItems.map((item) => (
-                  <option key={item.value} value={item.value}>
-                    {item.label}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            <div className="mt-4">
-              <button
-                className="h-12 bg-indigo-500 rounded-lg justify-center items-center"
-                type="submit"
-              >
-                <div className="text-white text-base font-semibold">Submit</div>
-              </button>
-
-              {showSuccess && (
-                <div className="mt-2 p-2 bg-green-100 rounded-md">
-                  <div>
-                    Food added successfully!{" "}
-                    <span className="text-green-500">✓</span>
-                  </div>
-                </div>
+              {showResults && searchResults.length > 0 && (
+                <ul className="border rounded-lg mt-1 bg-white max-h-40 overflow-y-auto shadow">
+                  {searchResults.map((item) => (
+                    <li
+                      key={item.id}
+                      className="p-3 border-b border-gray-100 hover:bg-gray-50 cursor-pointer"
+                      onClick={() => handleFoodSelect(item)}
+                    >
+                      <div className="text-gray-800 font-medium">
+                        {item.name}
+                      </div>
+                      <div className="text-gray-500 text-sm mt-1">
+                        {item.type === "ingredient" ? "Ingredient" : "Recipe"}
+                      </div>
+                    </li>
+                  ))}
+                </ul>
               )}
-            </div>
-          </form>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <label className="block text-sm font-medium text-gray-700">
+                    Amount
+                  </label>
+                  <input
+                    className={`w-full h-12 px-4 rounded-lg border ${
+                      isFocused2
+                        ? "border-indigo-500 ring-1 ring-indigo-200"
+                        : "border-gray-300"
+                    } text-base text-gray-900 focus:outline-none transition-colors`}
+                    placeholder="Enter amount (e.g., 100)"
+                    value={amount}
+                    onChange={(e) => setAmount(e.target.value)}
+                    onFocus={() => {
+                      setIsFocused2(true);
+                      closeAllDropdowns();
+                    }}
+                    onBlur={() => setIsFocused2(false)}
+                    type="number"
+                    min="0"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <label className="block text-sm font-medium text-gray-700">
+                    Units
+                  </label>
+
+                  <select
+                    className="w-full h-12 px-4 rounded-lg border border-gray-300 text-base text-gray-900 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-200 focus:outline-none"
+                    value={unit}
+                    onChange={(e) => setUnit(e.target.value)}
+                  >
+                    {unitItems.map((item) => (
+                      <option key={item.value} value={item.value}>
+                        {item.label}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+
+              {/* Meal Type Dropdown */}
+              <div className="space-y-2">
+                <label className="block text-sm font-medium text-gray-700">
+                  Meal Type
+                </label>
+                <select
+                  className="w-full h-12 px-4 rounded-lg border border-gray-300 text-base text-gray-900 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-200 focus:outline-none"
+                  value={mealType}
+                  onChange={(e) => setMealType(e.target.value as any)}
+                >
+                  {mealTypeItems.map((item) => (
+                    <option key={item.value} value={item.value}>
+                      {item.label}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="mt-6">
+                <button
+                  className={`w-full h-12 rounded-lg flex items-center justify-center ${
+                    selectedFood && amount
+                      ? "bg-indigo-600 hover:bg-indigo-700"
+                      : "bg-gray-300 cursor-not-allowed"
+                  } text-white font-medium transition-colors`}
+                  type="submit"
+                  disabled={!selectedFood || !amount}
+                >
+                  <div className="text-white text-base font-semibold">
+                    Submit
+                  </div>
+                </button>
+
+                {showSuccess && (
+                  <div className="mt-4 p-3 bg-green-100 border border-green-200 rounded-lg text-center">
+                    <div>
+                      Food added successfully!{" "}
+                      <span className="text-green-600">✓</span>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </form>
+          </div>
         </div>
       </div>
     </div>
