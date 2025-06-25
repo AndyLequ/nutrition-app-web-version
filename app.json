@@ -19,7 +19,6 @@
       "package": "com.andyle.nutritionapp"
     },
     "web": {
-      "bundler": "metro",
       "output": "static",
       "favicon": "./assets/images/favicon.png"
     },
