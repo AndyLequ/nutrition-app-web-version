@@ -1,4 +1,3 @@
-import { Button } from "react-native";
 import { useFood } from "../FoodProvider";
 import React, { useState } from "react";
 

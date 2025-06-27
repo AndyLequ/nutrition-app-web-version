@@ -5,10 +5,15 @@ import React, {
   useEffect,
   useCallback,
 } from "react";
-import AsyncStorage from "@react-native-async-storage/async-storage";
-import { AppState } from "react-native";
 
 export type MealType = "breakfast" | "lunch" | "dinner" | "snacks";
+
+type FoodItem = {
+  id: string;
+  name: string;
+  calories: number;
+  protein: number;
+};
 
 type MealPlan = {
   date: string;
@@ -156,7 +161,7 @@ export const MealPlanProvider: React.FC<{ children: React.ReactNode }> = ({
 }) => {
   const [mealPlans, setMealPlans] = useState<MealPlan[]>(initialMealData);
   const [loading, setLoading] = useState(true);
-  const STORAGE_KEY = "@mealPlans";
+  const STORAGE_KEY = "mealPlans";
 
   const getOrCreateDailyPlan = useCallback(
     (date: string) => {
@@ -164,7 +169,6 @@ export const MealPlanProvider: React.FC<{ children: React.ReactNode }> = ({
       if (existing) {
         return existing;
       }
-
       return {
         date,
         meals: {
@@ -179,31 +183,30 @@ export const MealPlanProvider: React.FC<{ children: React.ReactNode }> = ({
   );
 
   useEffect(() => {
-    const loadMealPlans = async () => {
-      try {
-        const savedPlans = await AsyncStorage.getItem(STORAGE_KEY);
-        const parsedPlans = savedPlans ? JSON.parse(savedPlans) : [];
-
-        //validate and sanitize data
-        const validPlans = parsedPlans.filter(
-          (plan: any) =>
-            plan.date && typeof plan.date === "string" && plan.meals
-        );
-
-        setMealPlans(validPlans);
-      } catch (error) {
-        console.error("Error loading meal plans:", error);
-        setMealPlans([]);
-      } finally {
-        setLoading(false);
-      }
-    };
-    loadMealPlans();
+    // Load from localStorage
+    try {
+      const savedPlans = localStorage.getItem(STORAGE_KEY);
+      const parsedPlans = savedPlans ? JSON.parse(savedPlans) : [];
+      const validPlans = parsedPlans.filter(
+        (plan: any) => plan.date && typeof plan.date === "string" && plan.meals
+      );
+      setMealPlans(validPlans.length > 0 ? validPlans : initialMealData);
+    } catch (error) {
+      console.error("Error loading meal plans:", error);
+      setMealPlans(initialMealData);
+    } finally {
+      setLoading(false);
+    }
+    // eslint-disable-next-line
   }, []);
 
   useEffect(() => {
     if (!loading) {
-      AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(mealPlans));
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(mealPlans));
+      } catch (e) {
+        console.error("Error saving meal plans:", e);
+      }
     }
   }, [mealPlans, loading]);
 

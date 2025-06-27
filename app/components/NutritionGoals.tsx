@@ -1,7 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { View, Text, StyleSheet, TextInput } from "react-native";
 import { useFood } from "../FoodProvider"; // Adjust the import based on your file structure
-import AsyncStorage from "@react-native-async-storage/async-storage";
 
 export const NutritionGoals = () => {
   const { foods } = useFood();
@@ -9,35 +7,27 @@ export const NutritionGoals = () => {
   const [calorieGoal, setCalorieGoal] = useState(2000);
   const [editing, setEditing] = useState(false);
 
-  //Load saved goals on component mount
+  // Load saved goals on component mount
   useEffect(() => {
-    const loadGoals = async () => {
-      try {
-        const savedProtein = await AsyncStorage.getItem("proteinGoal");
-        const savedCalories = await AsyncStorage.getItem("calorieGoal");
+    try {
+      const savedProtein = localStorage.getItem("proteinGoal");
+      const savedCalories = localStorage.getItem("calorieGoal");
 
-        if (savedProtein) setProteinGoal(Number(savedProtein));
-        if (savedCalories) setCalorieGoal(Number(savedCalories));
-      } catch (error) {
-        console.error("Error loading goals:", error);
-      }
-    };
-    loadGoals();
+      if (savedProtein) setProteinGoal(Number(savedProtein));
+      if (savedCalories) setCalorieGoal(Number(savedCalories));
+    } catch (error) {
+      console.error("Error loading goals:", error);
+    }
   }, []);
 
-  //save goals whenever they change
+  // Save goals whenever they change
   useEffect(() => {
-    const saveGoals = async () => {
-      try {
-        await AsyncStorage.multiSet([
-          ["proteinGoal", proteinGoal.toString()],
-          ["calorieGoal", calorieGoal.toString()],
-        ]);
-      } catch (error) {
-        console.error("Error saving goals:", error);
-      }
-    };
-    saveGoals();
+    try {
+      localStorage.setItem("proteinGoal", proteinGoal.toString());
+      localStorage.setItem("calorieGoal", calorieGoal.toString());
+    } catch (error) {
+      console.error("Error saving goals:", error);
+    }
   }, [proteinGoal, calorieGoal]);
 
   const truncateToTwoDecimals = (num: number) => {
@@ -55,60 +45,60 @@ export const NutritionGoals = () => {
   const calorieProgress = Math.min((totalCalories / calorieGoal) * 100, 100);
 
   return (
-    <View className="bg-white p-5 rounded-lg shadow-sm mb-4">
-      <Text className="text-2xl font-bold mb-5 text-gray-800">
+    <div className="bg-white p-5 rounded-lg shadow-sm mb-4">
+      <div className="text-2xl font-bold mb-5 text-gray-800">
         Nutrition Goals
-      </Text>
+      </div>
 
-      <View className="mb-5">
-        <View className="mb-4">
-          <Text className="text-lg mb-2.5 text-gray-700">
+      <div className="mb-5">
+        <div className="mb-4">
+          <div className="text-lg mb-2.5 text-gray-700">
             Protein: {totalProtein}g / {proteinGoal}g
-          </Text>
+          </div>
           {editing && (
-            <TextInput
+            <input
               className="border-b-2 border-teal-400 w-20 text-center"
-              keyboardType="numeric"
-              value={proteinGoal.toString()}
-              onChangeText={(text) => setProteinGoal(Number(text) || 0)}
+              type="number"
+              value={proteinGoal}
+              onChange={(e) => setProteinGoal(Number(e.target.value) || 0)}
             />
           )}
-          <View className="h-5 bg-gray-200 rounded-full overflow-hidden">
-            <View
-              className="h-full bg-teal-400 rounded-full"
+          <div className="h-5 bg-gray-200 rounded-full overflow-hidden">
+            <div
+              className="h-full bg-teal-400 rounded-full transition-all duration-300"
               style={{ width: `${proteinProgress}%` }}
-            ></View>
-          </View>
-        </View>
+            ></div>
+          </div>
+        </div>
 
-        <View>
-          <Text className="text-lg mb-2.5 text-gray-700">
+        <div>
+          <div className="text-lg mb-2.5 text-gray-700">
             Calories: {totalCalories} cal / {calorieGoal} cal
-          </Text>
+          </div>
           {editing && (
-            <TextInput
+            <input
               className="border-b-2 border-orange-400 w-20 text-center"
-              keyboardType="numeric"
-              value={calorieGoal.toString()}
-              onChangeText={(text) => setCalorieGoal(Number(text) || 0)}
+              type="number"
+              value={calorieGoal}
+              onChange={(e) => setCalorieGoal(Number(e.target.value) || 0)}
             />
           )}
-          <View className="h-5 bg-gray-200 rounded-full overflow-hidden">
-            <View
-              className="h-full bg-orange-400 rounded-full"
+          <div className="h-5 bg-gray-200 rounded-full overflow-hidden">
+            <div
+              className="h-full bg-orange-400 rounded-full transition-all duration-300"
               style={{ width: `${calorieProgress}%` }}
-            ></View>
-          </View>
-        </View>
-      </View>
-      <View>
-        <Text
-          className="text-teal-600 text-center font-bold"
-          onPress={() => setEditing(!editing)}
+            ></div>
+          </div>
+        </div>
+      </div>
+      <div>
+        <button
+          className="text-teal-600 text-center font-bold w-full py-2 hover:underline"
+          onClick={() => setEditing(!editing)}
         >
           {editing ? "Save Goals" : "Edit Goals"}
-        </Text>
-      </View>
-    </View>
+        </button>
+      </div>
+    </div>
   );
 };
