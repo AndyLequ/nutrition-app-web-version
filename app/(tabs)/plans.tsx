@@ -1,5 +1,4 @@
-import { useState } from "react";
-import { View, Text, TouchableOpacity, ScrollView } from "react-native";
+import React, { useState } from "react";
 import MealPlanList from "../components/MealPlanList";
 
 interface MealOption {
@@ -124,7 +123,7 @@ const mealConfigurations: MealConfig[] = [
   },
 ];
 
-export default function Plans() {
+const Plans: React.FC = () => {
   const [selectedConfigs, setSelectedConfigs] = useState<SelectedConfigs>({});
   const [expandedMeal, setExpandedMeal] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<"config" | "plan">("plan");
@@ -144,184 +143,193 @@ export default function Plans() {
   };
 
   return (
-    <View className="flex-1 bg-slate-50">
-      <Text className="text-3xl font-bold text-center text-slate-800 my-4">
+    <div className="min-h-screen bg-slate-50 flex flex-col">
+      <div className="text-3xl font-bold text-center text-slate-800 my-4">
         Meal Plans
-      </Text>
+      </div>
 
-      <View className="flex-row justify-around bg-white mx-4 p-2 rounded-lg shadow-sm">
-        <TouchableOpacity
+      <div className="flex flex-row justify-around bg-white mx-4 p-2 rounded-lg shadow-sm">
+        <button
           className={`px-4 py-2 rounded-full ${
             activeTab === "plan" ? "bg-indigo-600" : "bg-transparent"
           }`}
-          onPress={() => setActiveTab("plan")}
+          onClick={() => setActiveTab("plan")}
         >
-          <Text
+          <span
             className={`font-medium ${
               activeTab === "plan" ? "text-white" : "text-slate-600"
             }`}
           >
             View Weekly Plan
-          </Text>
-        </TouchableOpacity>
-        <TouchableOpacity
+          </span>
+        </button>
+        <button
           className={`px-4 py-2 rounded-full ${
             activeTab === "config" ? "bg-indigo-600" : "bg-transparent"
           }`}
-          onPress={() => setActiveTab("config")}
+          onClick={() => setActiveTab("config")}
         >
-          <Text
+          <span
             className={`font-medium ${
               activeTab === "config" ? "text-white" : "text-slate-600"
             }`}
           >
             Nutrition Suggestions
-          </Text>
-        </TouchableOpacity>
-      </View>
+          </span>
+        </button>
+      </div>
 
-      {activeTab === "config" ? (
-        <ScrollView className="flex-1 px-4 mt-4">
-          {mealConfigurations.map(({ meal, options }) => (
-            <View key={meal} className="bg-white rounded-lg p-4 mb-3 shadow-sm">
-              <TouchableOpacity
-                onPress={() => toggleMeal(meal)}
-                className="flex-row justify-between items-center"
+      <div className="flex-1 overflow-y-auto px-4 mt-4 pb-32">
+        {activeTab === "config" ? (
+          <>
+            {mealConfigurations.map(({ meal, options }) => (
+              <div
+                key={meal}
+                className="bg-white rounded-lg p-4 mb-3 shadow-sm"
               >
-                <Text className="text-lg font-semibold text-slate-800">
-                  {meal}
-                </Text>
-                <Text className="text-sm text-slate-500 mt-1">
-                  {selectedConfigs[meal]
-                    ? `Selected: ${selectedConfigs[meal]?.label}`
-                    : "Choose configuration"}
-                </Text>
-              </TouchableOpacity>
+                <button
+                  type="button"
+                  onClick={() => toggleMeal(meal)}
+                  className="flex flex-row justify-between items-center w-full"
+                >
+                  <span className="text-lg font-semibold text-slate-800">
+                    {meal}
+                  </span>
+                  <span className="text-sm text-slate-500 mt-1">
+                    {selectedConfigs[meal]
+                      ? `Selected: ${selectedConfigs[meal]?.label}`
+                      : "Choose configuration"}
+                  </span>
+                </button>
 
-              {expandedMeal === meal && (
-                <View className="mt-3 ml-2">
-                  {options.map((config) => (
-                    <TouchableOpacity
-                      key={config.id}
-                      onPress={() => selectConfiguration(meal, config)}
-                      className={`p-3 rounded mb-2 ${
-                        selectedConfigs[meal]?.id === config.id
-                          ? "bg-indigo-50 border-l-4 border-indigo-500"
-                          : "bg-slate-50"
-                      }`}
-                    >
-                      <Text className="text-indigo-600 font-medium text-base">
-                        {config.label}
-                      </Text>
-                      <Text className="text-slate-600 text-sm mt-1">
-                        {config.items}
-                      </Text>
-                    </TouchableOpacity>
-                  ))}
+                {expandedMeal === meal && (
+                  <div className="mt-3 ml-2">
+                    {options.map((config) => (
+                      <button
+                        key={config.id}
+                        type="button"
+                        onClick={() => selectConfiguration(meal, config)}
+                        className={`p-3 rounded mb-2 text-left w-full ${
+                          selectedConfigs[meal]?.id === config.id
+                            ? "bg-indigo-50 border-l-4 border-indigo-500"
+                            : "bg-slate-50"
+                        }`}
+                      >
+                        <div className="text-indigo-600 font-medium text-base">
+                          {config.label}
+                        </div>
+                        <div className="text-slate-600 text-sm mt-1">
+                          {config.items}
+                        </div>
+                      </button>
+                    ))}
 
-                  {/* Description section */}
-                  {selectedOption && selectedConfigs[meal] && (
-                    <View className="mt-4 p-4 bg-blue-50 rounded-lg border border-blue-100">
-                      <Text className="text-blue-800 font-medium mb-2">
-                        About the {selectedOption.label} Option:
-                      </Text>
-                      <Text className="text-slate-700">
-                        {selectedOption.description}
-                      </Text>
-                      <View className="mt-3">
-                        <Text className="text-blue-800 font-medium mb-1">
-                          Best For:
-                        </Text>
-                        <View className="flex-row flex-wrap">
-                          {selectedOption.label.includes("Low-Carb") && (
-                            <Text className="bg-blue-100 text-blue-800 px-2 py-1 rounded-full text-xs mr-2 mb-2">
-                              Weight Loss
-                            </Text>
-                          )}
-                          {selectedOption.label.includes("High-Protein") && (
-                            <Text className="bg-blue-100 text-blue-800 px-2 py-1 rounded-full text-xs mr-2 mb-2">
-                              Muscle Building
-                            </Text>
-                          )}
-                          {selectedOption.label.includes("Vegetarian") && (
-                            <Text className="bg-blue-100 text-blue-800 px-2 py-1 rounded-full text-xs mr-2 mb-2">
-                              Heart Health
-                            </Text>
-                          )}
-                          {selectedOption.label.includes("Keto") && (
-                            <Text className="bg-blue-100 text-blue-800 px-2 py-1 rounded-full text-xs mr-2 mb-2">
-                              Ketogenic Diet
-                            </Text>
-                          )}
-                          {selectedOption.label.includes("Mediterranean") && (
-                            <Text className="bg-blue-100 text-blue-800 px-2 py-1 rounded-full text-xs mr-2 mb-2">
-                              Longevity
-                            </Text>
-                          )}
-                          {selectedOption.label.includes("Gluten-Free") && (
-                            <Text className="bg-blue-100 text-blue-800 px-2 py-1 rounded-full text-xs mr-2 mb-2">
-                              Digestive Health
-                            </Text>
-                          )}
-                          {selectedOption.label.includes("Low-Fat") && (
-                            <Text className="bg-blue-100 text-blue-800 px-2 py-1 rounded-full text-xs mr-2 mb-2">
-                              Cholesterol Control
-                            </Text>
-                          )}
-                          {selectedOption.label.includes("Energy") && (
-                            <Text className="bg-blue-100 text-blue-800 px-2 py-1 rounded-full text-xs mr-2 mb-2">
-                              Active Lifestyles
-                            </Text>
-                          )}
-                          {selectedOption.label.includes("Protein") && (
-                            <Text className="bg-blue-100 text-blue-800 px-2 py-1 rounded-full text-xs mr-2 mb-2">
-                              Post-Workout
-                            </Text>
-                          )}
-                          {selectedOption.label.includes("Low-Calorie") && (
-                            <Text className="bg-blue-100 text-blue-800 px-2 py-1 rounded-full text-xs mr-2 mb-2">
-                              Calorie Control
-                            </Text>
-                          )}
-                        </View>
-                      </View>
-                    </View>
-                  )}
-                </View>
-              )}
-            </View>
-          ))}
+                    {/* Description section */}
+                    {selectedOption && selectedConfigs[meal] && (
+                      <div className="mt-4 p-4 bg-blue-50 rounded-lg border border-blue-100">
+                        <div className="text-blue-800 font-medium mb-2">
+                          About the {selectedOption.label} Option:
+                        </div>
+                        <div className="text-slate-700">
+                          {selectedOption.description}
+                        </div>
+                        <div className="mt-3">
+                          <div className="text-blue-800 font-medium mb-1">
+                            Best For:
+                          </div>
+                          <div className="flex flex-row flex-wrap">
+                            {selectedOption.label.includes("Low-Carb") && (
+                              <span className="bg-blue-100 text-blue-800 px-2 py-1 rounded-full text-xs mr-2 mb-2">
+                                Weight Loss
+                              </span>
+                            )}
+                            {selectedOption.label.includes("High-Protein") && (
+                              <span className="bg-blue-100 text-blue-800 px-2 py-1 rounded-full text-xs mr-2 mb-2">
+                                Muscle Building
+                              </span>
+                            )}
+                            {selectedOption.label.includes("Vegetarian") && (
+                              <span className="bg-blue-100 text-blue-800 px-2 py-1 rounded-full text-xs mr-2 mb-2">
+                                Heart Health
+                              </span>
+                            )}
+                            {selectedOption.label.includes("Keto") && (
+                              <span className="bg-blue-100 text-blue-800 px-2 py-1 rounded-full text-xs mr-2 mb-2">
+                                Ketogenic Diet
+                              </span>
+                            )}
+                            {selectedOption.label.includes("Mediterranean") && (
+                              <span className="bg-blue-100 text-blue-800 px-2 py-1 rounded-full text-xs mr-2 mb-2">
+                                Longevity
+                              </span>
+                            )}
+                            {selectedOption.label.includes("Gluten-Free") && (
+                              <span className="bg-blue-100 text-blue-800 px-2 py-1 rounded-full text-xs mr-2 mb-2">
+                                Digestive Health
+                              </span>
+                            )}
+                            {selectedOption.label.includes("Low-Fat") && (
+                              <span className="bg-blue-100 text-blue-800 px-2 py-1 rounded-full text-xs mr-2 mb-2">
+                                Cholesterol Control
+                              </span>
+                            )}
+                            {selectedOption.label.includes("Energy") && (
+                              <span className="bg-blue-100 text-blue-800 px-2 py-1 rounded-full text-xs mr-2 mb-2">
+                                Active Lifestyles
+                              </span>
+                            )}
+                            {selectedOption.label.includes("Protein") && (
+                              <span className="bg-blue-100 text-blue-800 px-2 py-1 rounded-full text-xs mr-2 mb-2">
+                                Post-Workout
+                              </span>
+                            )}
+                            {selectedOption.label.includes("Low-Calorie") && (
+                              <span className="bg-blue-100 text-blue-800 px-2 py-1 rounded-full text-xs mr-2 mb-2">
+                                Calorie Control
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+            ))}
 
-          {/* Summary of selections */}
-          {Object.keys(selectedConfigs).length > 0 && (
-            <View className="bg-white rounded-lg p-4 mt-4 mb-6 shadow-sm">
-              <Text className="text-lg font-semibold text-slate-800 mb-3">
-                Your Selected Nutrition Plan
-              </Text>
-              {Object.entries(selectedConfigs).map(([meal, config]) => (
-                <View key={meal} className="mb-3">
-                  <Text className="text-indigo-600 font-medium">
-                    {meal}: {config?.label}
-                  </Text>
-                  <Text className="text-slate-600 text-sm">
-                    {config?.items}
-                  </Text>
-                </View>
-              ))}
-              <Text className="text-slate-700 mt-3">
-                This balanced nutrition plan supports your fitness goals by
-                providing optimal fuel for your activities and recovery.
-                Remember to stay hydrated and adjust portions based on your
-                energy needs.
-              </Text>
-            </View>
-          )}
-        </ScrollView>
-      ) : (
-        <View className="flex-1 mt-4">
-          <MealPlanList />
-        </View>
-      )}
-    </View>
+            {/* Summary of selections */}
+            {Object.keys(selectedConfigs).length > 0 && (
+              <div className="bg-white rounded-lg p-4 mt-4 mb-6 shadow-sm">
+                <div className="text-lg font-semibold text-slate-800 mb-3">
+                  Your Selected Nutrition Plan
+                </div>
+                {Object.entries(selectedConfigs).map(([meal, config]) => (
+                  <div key={meal} className="mb-3">
+                    <div className="text-indigo-600 font-medium">
+                      {meal}: {config?.label}
+                    </div>
+                    <div className="text-slate-600 text-sm">
+                      {config?.items}
+                    </div>
+                  </div>
+                ))}
+                <div className="text-slate-700 mt-3">
+                  This balanced nutrition plan supports your fitness goals by
+                  providing optimal fuel for your activities and recovery.
+                  Remember to stay hydrated and adjust portions based on your
+                  energy needs.
+                </div>
+              </div>
+            )}
+          </>
+        ) : (
+          <div className="flex-1 mt-4">
+            <MealPlanList />
+          </div>
+        )}
+      </div>
+    </div>
   );
-}
+};
+
+export default Plans;

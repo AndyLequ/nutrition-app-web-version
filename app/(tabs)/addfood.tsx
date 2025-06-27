@@ -6,7 +6,7 @@ const AddFood = () => {
   const [activeTab, setActiveTab] = useState<"search" | "custom">("search");
 
   return (
-    <div className="flex flex-col h-full">
+    <div className="flex flex-col min-h-screen">
       {/* Tab Buttons */}
       <div className="flex flex-row bg-slate-100 p-1 justify-center">
         <button
@@ -35,7 +35,7 @@ const AddFood = () => {
         </button>
       </div>
       {/* Tab Content */}
-      <div className="flex-1">
+      <div className="flex-1 overflow-y-auto">
         {activeTab === "search" ? <SearchFood /> : <CustomFood />}
       </div>
     </div>
