@@ -35,7 +35,7 @@ const AddFood = () => {
         </button>
       </div>
       {/* Tab Content */}
-      <div className="flex-1 overflow-y-auto">
+      <div className="flex-1 overflow-y-auto pb-32">
         {activeTab === "search" ? <SearchFood /> : <CustomFood />}
       </div>
     </div>
