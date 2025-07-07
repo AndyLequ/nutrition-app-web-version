@@ -1,4 +1,6 @@
 
+DEMO IS LIVE HERE!
+https://nutrition-app-web-version-1.onrender.com/
 
 
 
@@ -42,6 +44,8 @@ agenda for today(3/20/2025)
       -make it so that whenever the item(food and amount) is submitted, I make a get request to the spoonacular api, which then returns the list of food items that I can choose. 
       -After that data is returned, I need to display it in the addfood.tsx page as a list of items. 
       - after that, make it so that the food items shown in the list can be picked so that the particular chosen food item with its amount is then added to the logger page.
+
+
 
       CURRENT STATUS OF addfood.tsx
       - right now what is function correctly is the page's ability to write a food name and amount and then enter that food name and amount to the logger page. It is not capable of taking any nutrition data about that food and then displaying that nutrition data to anywhere. 
